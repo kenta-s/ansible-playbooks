@@ -1,6 +1,6 @@
 ---
 - name: install Hadoop
-  hosts: hadoop-master
+  hosts: hadoop-slave2
   become: yes
   become_user: root
 
@@ -25,33 +25,18 @@
       rpm_key:
         state: present
         key: https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/RPM-GPG-KEY-cloudera
+
     - name: yum clean
       shell: yum clean all
-    - name: Resource Manager host
+    - name: Node Manager host
       yum:
-        name: hadoop-yarn-resourcemanager
+        name: hadoop-yarn-nodemanager
         state: latest
     - name: NameNode host
       yum:
-        name: hadoop-hdfs-namenode
+        name: hadoop-hdfs-datanode
         state: latest
     - name: MR history server
       yum:
-        name: hadoop-mapreduce-historyserver
+        name: hadoop-mapreduce
         state: latest
-    - name: YARN proxy server
-      yum:
-        name: hadoop-yarn-proxyserver
-        state: latest
-    - name: copy hadoop conf dir
-      command: 'sudo cp -r /etc/hadoop/conf.empty /etc/hadoop/conf.cluster'
-    - name: add property to core-site.xml
-      lineinfile: 
-        dest: /etc/hadoop/conf/core-site.xml
-        # regexp: \<configuration\>
-        insertafter: '<configuration>'
-        line: '{{ item }}'
-        state: present
-        backup: yes
-      with_items:
-        - "<property>\n<name>fs.defaultFS</name>\n<value>hdfs://hadoop-master:8020</value>\n</property>"
