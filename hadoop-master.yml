@@ -46,12 +46,20 @@
     - name: copy hadoop conf dir
       command: 'sudo cp -r /etc/hadoop/conf.empty /etc/hadoop/conf.cluster'
     - name: add property to core-site.xml
-      lineinfile: 
+      lineinfile:
         dest: /etc/hadoop/conf/core-site.xml
-        # regexp: \<configuration\>
         insertafter: '<configuration>'
         line: '{{ item }}'
         state: present
         backup: yes
       with_items:
         - "<property>\n<name>fs.defaultFS</name>\n<value>hdfs://hadoop-master:8020</value>\n</property>"
+    - name: add property to hdfs-site.xml
+      lineinfile:
+        dest: /etc/hadoop/conf/hdfs-site.xml
+        insertafter: '<configuration>'
+        line: '{{ item }}'
+        state: present
+        backup: yes
+      with_items:
+        - "<property>\n<name>dfs.permissions.superusergroup</name>\n<value>hadoop</value>\n</property>\n<property>\n<name>dfs.datanode.name.dir</name>\n<value>/var/lib/hadoop-hdfs/cache/dfs/data</value>\n</property>"
