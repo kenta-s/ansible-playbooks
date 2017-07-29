@@ -40,3 +40,13 @@
       service: 
         name: zookeeper-server
         state: started
+    - name: yum clean
+      shell: yum clean all
+    - name: Resource Manager host
+      yum:
+        name: hadoop-yarn-resourcemanager
+        state: latest
+    - name: NameNode host
+      yum:
+        name: hadoop-hdfs-namenode
+        state: latest
