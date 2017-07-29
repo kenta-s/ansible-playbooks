@@ -16,3 +16,27 @@
       yum:
         name: /tmp/jdk-8u131-linux-x64.rpm
         state: present      
+
+    - name: CDH5
+      get_url:
+        url: https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/cloudera-cdh5.repo
+        dest: /etc/yum.repos.d/cloudera-cdh5.repo
+    - name: RPM key
+      rpm_key:
+        state: present
+        key: https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/RPM-GPG-KEY-cloudera
+
+    - name: Install ZooKeeper
+      yum:
+        name: zookeeper
+        state: latest
+      yum:
+        name: zookeeper-server
+        state: latest
+      # - name: init zookeeper
+      # - run_once: true
+      # - command: 'service zookeeper-server init --myid=1'
+    - name: start zookeeper
+      service: 
+        name: zookeeper-server
+        state: started
