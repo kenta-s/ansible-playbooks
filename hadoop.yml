@@ -50,3 +50,11 @@
       yum:
         name: hadoop-hdfs-namenode
         state: latest
+    - name: MR history server
+      yum:
+        name: hadoop-mapreduce-historyserver
+        state: latest
+    - name: YARN proxy server
+      yum:
+        name: hadoop-yarn-proxyserver
+        state: latest
