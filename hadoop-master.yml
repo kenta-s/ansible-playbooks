@@ -53,26 +53,39 @@
       yum:
         name: hadoop-yarn-proxyserver
         state: latest
-    - name: copy hadoop conf dir
-      command: 'sudo cp -r /etc/hadoop/conf.empty /etc/hadoop/conf.cluster'
+    - name: remove configuration from core-site.xml
+      lineinfile:
+        path: /etc/hadoop/conf/core-site.xml
+        regexp: '{{ item }}'
+        state: absent
+      with_items:
+        - '^<configuration>'
+        - '^</configuration>'
     - name: add property to core-site.xml
       lineinfile:
-        dest: /etc/hadoop/conf/core-site.xml
-        insertafter: '<configuration>'
-        line: '{{ item }}'
+        path: /etc/hadoop/conf/core-site.xml
+        line: "<configuration><property><name>fs.defaultFS</name><value>hdfs://master:8020</value></property></configuration>"
         state: present
-        backup: yes
+    - name: remove </configuration>  in hdfs-site.xml
+      lineinfile:
+        path: /etc/hadoop/conf/hdfs-site.xml
+        regexp: '{{ item }}'
+        state: absent
       with_items:
-        - "<property>\n<name>fs.defaultFS</name>\n<value>hdfs://master:8020</value>\n</property>"
+        - '^<configuration>'
+        - '^</configuration>'
+        - '<property.*'
+        - '</property>'
+        - '<name.*'
+        - '</name>'
+        - '<value.*'
+        - '</value>'
     - name: add property to hdfs-site.xml
       lineinfile:
-        dest: /etc/hadoop/conf/hdfs-site.xml
-        insertafter: '<configuration>'
-        line: '{{ item }}'
+        path: /etc/hadoop/conf/hdfs-site.xml
+        line: "<configuration><property><name>dfs.permissions.superusergroup</name><value>hadoop</value></property><property><name>dfs.namenode.name.dir</name><value>/var/lib/hadoop-hdfs/cache/dfs/name</value></property><property><name>dfs.datanode.name.dir</name><value>/var/lib/hadoop-hdfs/cache/dfs/data</value></property></configuration>"
         state: present
-        backup: yes
-      with_items:
-        - "<property>\n<name>dfs.permissions.superusergroup</name>\n<value>hadoop</value>\n</property>\n<property>\n<name>dfs.datanode.name.dir</name>\n<value>/var/lib/hadoop-hdfs/cache/dfs/data</value>\n</property>"
+
     - name: prepare cache dir 1
       command: 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/name'
     - name: prepare cache dir 2
