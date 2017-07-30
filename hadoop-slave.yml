@@ -1,6 +1,6 @@
 ---
 - name: install Hadoop
-  hosts: hadoop-slave2
+  hosts: "hadoop-slave1,hadoop-slave2"
   become: yes
   become_user: root
 
