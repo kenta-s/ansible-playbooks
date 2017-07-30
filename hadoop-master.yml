@@ -5,6 +5,12 @@
   become_user: root
 
   tasks:
+    - name: start firewalld
+      command: 'sudo systemctl start firewalld'
+    - name: add 8020 to firewalld
+      command: 'sudo firewall-cmd --zone=public --permanent --add-port=8020/tcp'
+    - name: reload firewalld
+      command: 'sudo firewall-cmd --reload'
     - name: epel-release
       yum:
         name: epel-release
@@ -120,6 +126,21 @@
         line: '<value>hdfs:///master:8020/var/log/hadoop-yarn/apps</value>'
         state: present
 
+    - name: init slaves
+      lineinfile:
+        path: /etc/hadoop/conf/slaves
+        line: 'localhost'
+        state: absent
+
+    - name: add slaves
+      lineinfile:
+        path: /etc/hadoop/conf/slaves
+        line: '{{ item }}'
+        state: present
+      with_items:
+        - 'slave1'
+        - 'slave2'
+
     - name: format namenode
       expect:
         command: 'sudo -u hdfs hdfs namenode -format'
@@ -138,3 +159,22 @@
         - '192.168.33.12 master'
         - '192.168.33.13 slave1'
         - '192.168.33.14 slave2'
+
+    - name: prepare directories on HDFS
+      command: '{{ item }}'
+      with_items:
+        - 'sudo -u hdfs hadoop fs -mkdir -p /user/history'
+        - 'sudo -u hdfs hadoop fs -chmod -R 1777 /user/history'
+        - 'sudo -u hdfs hadoop fs -chown mapred:hadoop /user/history'
+        - 'sudo -u hdfs hadoop fs -mkdir -p /var/log/hadoop-yarn'
+        - 'sudo -u hdfs hadoop fs -chown yarn:mapred /var/log/hadoop-yarn'
+
+    - name: start resouce manager
+      service:
+        name: hadoop-yarn-resourcemanager
+        state: started
+
+    - name: start history server
+      service:
+        name: hadoop-mapreduce-historyserver
+        state: started
