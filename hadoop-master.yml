@@ -86,6 +86,39 @@
         - 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/name'
         - 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/data'
         - 'sudo chown hdfs:hadoop -R /var/lib/hadoop-hdfs/cache/dfs'
+        - 'sudo mkdir -p /var/lib/hadoop-yarn/cache/local'
+        - 'sudo chown hdfs:hadoop /var/lib/hadoop-yarn/cache/local'
+        - 'sudo mkdir -p /var/log/hadoop-yarn/containers'
+        - 'sudo chown hdfs:hadoop /var/log/hadoop-yarn/containers'
+
+    - name: remove configuration from mapred-site.xml
+      lineinfile:
+        path: /etc/hadoop/conf/mapred-site.xml
+        regexp: '{{ item }}'
+        state: absent
+      with_items:
+        - '^<configuration>'
+        - '^</configuration>'
+
+    - name: add property to mapred-site.xml
+      lineinfile:
+        path: /etc/hadoop/conf/mapred-site.xml
+        line: "<configuration><property><name>yarn.nodemanager.local-dirs</name><value>file:///var/lib/hadoop-yarn/cache/local</value></property><property><name>yarn.nodemanager.log-dirs</name><value>file:///var/log/hadoop-yarn/containers</value></property><property><name>yarn.nodemanager.remote-app-log-dir</name><value>hdfs://master:8020/var/log/hadoop-yarn/apps</value></property><property><name>mapreduce.jobhistory.address</name><value>master:10020</value></property><property><name>mapreduce.jobhistory.webapp.address</name><value>master:19888</value></property><property><name>hadoop.proxyuser.mapred.groups</name><value>*</value></property><property><name>hadoop.proxyuser.mapred.hosts</name><value>*</value></property><property><name>yarn.app.mapreduce.am.staging-dir</name><value>/user</value></property></configuration>"
+        state: present
+
+    - name: set values to yarn-site.xml
+      lineinfile:
+        path: /etc/hadoop/conf/yarn-site.xml
+        regexp: '<value>file:///var/lib/hadoop-yarn/cache.*'
+        line: '<value>file:///var/lib/hadoop-yarn/cache/local</value>'
+        state: present
+
+    - name: set values to yarn-site.xml 2
+      lineinfile:
+        path: /etc/hadoop/conf/yarn-site.xml
+        regexp: '(<value>hdfs://var/log/hadoop-yarn/apps</value>|<value>hdfs:///master:8020/var/log/hadoop-yarn/apps</value>)'
+        line: '<value>hdfs:///master:8020/var/log/hadoop-yarn/apps</value>'
+        state: present
 
     - name: format namenode
       expect:
