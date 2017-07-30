@@ -37,22 +37,16 @@
         key: https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/RPM-GPG-KEY-cloudera
     - name: yum clean
       shell: yum clean all
-    - name: Resource Manager host
+    - name: Install libs via yum (latest)
       yum:
-        name: hadoop-yarn-resourcemanager
+        name: '{{ item }}'
         state: latest
-    - name: NameNode host
-      yum:
-        name: hadoop-hdfs-namenode
-        state: latest
-    - name: MR history server
-      yum:
-        name: hadoop-mapreduce-historyserver
-        state: latest
-    - name: YARN proxy server
-      yum:
-        name: hadoop-yarn-proxyserver
-        state: latest
+      with_items:
+        - 'hadoop-yarn-resourcemanager'
+        - 'hadoop-hdfs-namenode'
+        - 'hadoop-mapreduce-historyserver'
+        - 'hadoop-yarn-proxyserver'
+
     - name: remove configuration from core-site.xml
       lineinfile:
         path: /etc/hadoop/conf/core-site.xml
@@ -86,12 +80,13 @@
         line: "<configuration><property><name>dfs.permissions.superusergroup</name><value>hadoop</value></property><property><name>dfs.namenode.name.dir</name><value>/var/lib/hadoop-hdfs/cache/dfs/name</value></property><property><name>dfs.datanode.name.dir</name><value>/var/lib/hadoop-hdfs/cache/dfs/data</value></property></configuration>"
         state: present
 
-    - name: prepare cache dir 1
-      command: 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/name'
-    - name: prepare cache dir 2
-      command: 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/data'
-    - name: chown cache dir
-      command: 'sudo chown hdfs:hadoop -R /var/lib/hadoop-hdfs/cache/dfs'
+    - name: prepare cache directories
+      command: '{{ item }}'
+      with_items:
+        - 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/name'
+        - 'sudo mkdir -p /var/lib/hadoop-hdfs/cache/dfs/data'
+        - 'sudo chown hdfs:hadoop -R /var/lib/hadoop-hdfs/cache/dfs'
+
     - name: format namenode
       expect:
         command: 'sudo -u hdfs hdfs namenode -format'
