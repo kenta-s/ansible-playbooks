@@ -101,3 +101,12 @@
       service:
         name: hadoop-hdfs-namenode
         state: started
+    - name: set etc/hosts
+      lineinfile:
+        path: /etc/hosts
+        line: '{{ item }}'
+        state: present
+      with_items:
+        - '192.168.33.12 master'
+        - '192.168.33.13 slave1'
+        - '192.168.33.14 slave2'
