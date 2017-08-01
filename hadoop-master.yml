@@ -7,6 +7,17 @@
   tasks:
     - include: hadoop-common.yml
 
+    - name: Install libs via yum (latest)
+      yum:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+        - 'hadoop-yarn-resourcemanager'
+        - 'hadoop-hdfs-namenode'
+        - 'hadoop-mapreduce-historyserver'
+        - 'hadoop-yarn-proxyserver'
+        - 'hadoop-client'
+
     - name: format namenode
       expect:
         command: 'sudo -u hdfs hdfs namenode -format'

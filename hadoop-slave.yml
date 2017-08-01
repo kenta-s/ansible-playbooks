@@ -7,6 +7,15 @@
   tasks:
     - include: hadoop-common.yml
 
+    - name: NameNode host
+      yum:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+        - 'hadoop-hdfs-datanode'
+        - 'hadoop-yarn-nodemanager'
+        - 'hadoop-mapreduce'
+  
     - name: start datanode
       service:
         name: hadoop-hdfs-datanode
